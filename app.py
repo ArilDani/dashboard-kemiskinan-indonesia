@@ -3,10 +3,10 @@ import pandas as pd
 import numpy as np  
 import plotly.express as px
 
-# Konfigurasi halaman
+# Konfigurasi halaman Streamlit dengan judul dan layout lebar
 st.set_page_config(page_title="Analisis Kemiskinan Indonesia", layout="wide")
 
-# Sidebar Navigasi
+# Sidebar navigasi untuk memilih halaman
 st.sidebar.title("🏠")
 halaman = st.sidebar.radio("Pilih Halaman", ["🏠 home", "📊 Dashboard"])
 
@@ -16,6 +16,7 @@ halaman = st.sidebar.radio("Pilih Halaman", ["🏠 home", "📊 Dashboard"])
 if halaman == "🏠 home":
     st.title("Selamat Datang di Dashboard Kemiskinan Indonesia")
 
+    # Penjelasan singkat mengenai isi dashboard dan sumber data
     st.markdown("""
     ### 📊 Visualisasi & Analisis Kemiskinan Berdasarkan Data BPS
 
@@ -34,18 +35,19 @@ if halaman == "🏠 home":
     st.markdown("Klik menu *Dashboard* di samping kiri untuk mulai eksplorasi data.")
 
 # ==========================
-# 📊 DASHBOARD
+# 📊 HALAMAN DASHBOARD
 # ==========================
 elif halaman == "📊 Dashboard":
     st.title("📊 Analisis Tren & Sebaran Kemiskinan di Indonesia")
 
-    # 📥 Load data
+    # Path file data kemiskinan
     DATA_PATH = "data_kemiskinan.xlsx"
 
     try:
+        # Membaca data dari file Excel
         df = pd.read_excel(DATA_PATH)
 
-        # Rename kolom jika perlu
+        # Rename kolom agar lebih mudah dipahami jika kolom asli berbeda
         if "nama_provinsi" in df.columns:
             df.rename(columns={
                 "nama_provinsi": "Provinsi",
@@ -53,33 +55,31 @@ elif halaman == "📊 Dashboard":
                 "tahun": "Tahun"
             }, inplace=True)
 
+        # Konversi kolom ke tipe numerik dan hilangkan data yang tidak lengkap
         df["Persentase_Kemiskinan"] = pd.to_numeric(df["Persentase_Kemiskinan"], errors="coerce")
         df["Tahun"] = pd.to_numeric(df["Tahun"], errors="coerce")
         df = df.dropna(subset=["Tahun", "Provinsi", "Persentase_Kemiskinan"])
         df["Tahun"] = df["Tahun"].astype(int)
 
-        # ✅ Tambahan penggunaan numpy ringan (tanpa mengubah logika utama)
+        # Hitung rata-rata nasional persentase kemiskinan sebagai gambaran umum
         rata_rata_kemiskinan = np.round(np.mean(df["Persentase_Kemiskinan"]), 2)
         st.markdown(f"📌 **Rata-rata Nasional Persentase Kemiskinan:** {rata_rata_kemiskinan}%")
 
-        # 🗂️ Tampilkan data mentah
+        # Tampilkan data mentah untuk transparansi dan verifikasi data
         st.subheader("📄 Data Kemiskinan dari BPS")
         st.markdown("Sumber: https://opendata.jabarprov.go.id/id/dataset/persentase-penduduk-miskin-berdasarkan-provinsi-di-indonesia")
         st.dataframe(df)
 
-        # ========================
-        # 📈 Tren Kemiskinan
-        # ========================
+        # Visualisasi tren kemiskinan antar provinsi menggunakan grafik garis
         st.header("📈 Tren Kemiskinan Antar Provinsi")
         fig_tren = px.line(df, x="Tahun", y="Persentase_Kemiskinan", color="Provinsi",
                         markers=True, title="Tren Kemiskinan Antar Provinsi")
         st.plotly_chart(fig_tren, use_container_width=True)
 
-        # ========================
-        # 📍 Sebaran Kemiskinan (per Tahun)
-        # ========================
+        # Visualisasi sebaran kemiskinan pada tahun tertentu menggunakan grafik batang
         st.header("📍 Sebaran Kemiskinan di Tahun Tertentu")
 
+        # Slider untuk memilih tahun yang ingin dianalisis
         tahun_terpilih = st.slider("Pilih Tahun", int(df["Tahun"].min()), int(df["Tahun"].max()), step=1)
         df_tahun = df[df["Tahun"] == tahun_terpilih].sort_values("Persentase_Kemiskinan", ascending=False)
 
@@ -89,9 +89,7 @@ elif halaman == "📊 Dashboard":
                         title=f"Sebaran Kemiskinan per Provinsi Tahun {tahun_terpilih}")
         st.plotly_chart(fig_sebar, use_container_width=True)
 
-        # ========================
-        # 🔍 Analisis per Provinsi
-        # ========================
+        # Analisis tren kemiskinan spesifik per provinsi
         st.header("🔍 Analisis Spesifik Provinsi")
         provinsi_terpilih = st.selectbox("Pilih Provinsi", sorted(df["Provinsi"].unique()))
         df_prov = df[df["Provinsi"] == provinsi_terpilih]
@@ -101,9 +99,7 @@ elif halaman == "📊 Dashboard":
                         title=f"Tren Kemiskinan di {provinsi_terpilih}")
         st.plotly_chart(fig_prov, use_container_width=True)
 
-        # ========================
-        # 🧠 Faktor Penyebab Kemiskinan
-        # ========================
+        # Penjelasan faktor penyebab kemiskinan berdasarkan data dan publikasi BPS
         st.header("🧠 Faktor Penyebab Utama Kemiskinan")
         st.markdown("""
         Berdasarkan data dan publikasi dari **Badan Pusat Statistik (BPS)**, beberapa faktor utama yang menyebabkan kemiskinan di Indonesia antara lain:
