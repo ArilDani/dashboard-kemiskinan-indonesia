@@ -74,4 +74,3 @@ Berikut adalah penjelasan singkat mengenai sintaks dan struktur kode utama yang 
 - **Penanganan Error**  
   Blok `try-except` digunakan untuk menangani kesalahan saat membaca file data dan menampilkan pesan error dengan `st.error()`.
 
-Penjelasan ini bertujuan untuk membantu pembaca memahami bagaimana kode dalam `app.py` bekerja secara garis besar.
